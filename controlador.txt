@@ -1,0 +1,112 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Huesped;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Database\QueryException;
+
+class HuespedController extends Controller
+{
+    public function index()
+    {
+        $apiToken = env('API_TOKEN'); // Obtener el token del archivo .env
+        $huespedes = Huesped::where('Estado', 1)->get(); // Obtener los datos necesarios
+        return view('huesped', compact('apiToken', 'huespedes'));
+    }
+
+    public function getHuespedes()
+    {
+        $huespedes = Huesped::where('Estado', 1)->get();
+        return response()->json($huespedes);
+    }
+
+    public function store(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'Nombre' => 'required|string|max:255',
+                'Apellido' => 'required|string|max:255',
+                'DocumentoID' => 'required|integer',
+                'Telefono' => 'required|numeric',
+                'Correo' => 'required|string|email|max:255',
+                'ID_Residencial' => 'required|integer',
+            ]);
+
+            $validated['Estado'] = 1; // Estado por defecto como 'Activo'
+
+            $huesped = Huesped::create($validated);
+            return response()->json(['message' => 'Huésped registrado exitosamente.', 'data' => $huesped]);
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Error de validación', 'errors' => $e->errors()], 422);
+        } catch (QueryException $e) {
+            return response()->json(['message' => 'Error al guardar el huésped. Por favor, revisa los datos proporcionados.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al procesar la solicitud.'], 500);
+        }
+    }
+
+    public function show($id)
+    {
+        $huesped = Huesped::find($id);
+        if ($huesped && $huesped->Estado == 1) {
+            return response()->json($huesped);
+        } else {
+            return response()->json(['message' => 'Huésped no encontrado'], 404);
+        }
+    }
+
+    public function update(Request $request, $id)
+{
+    try {
+        \Log::info('Datos recibidos para la actualización:', $request->all());
+
+        $validated = $request->validate([
+            'Nombre' => 'required|string|max:255',
+            'Apellido' => 'required|string|max:255',
+            'DocumentoID' => 'required|integer',
+            'Telefono' => 'required|numeric',
+            'Correo' => 'required|string|email|max:255',
+            'Estado' => 'required|integer',
+            'ID_Residencial' => 'required|integer',
+        ]);
+
+        \Log::info('Datos validados para la actualización:', $validated);
+
+        $huesped = Huesped::findOrFail($id);
+        $huesped->update($validated);
+
+        return response()->json(['message' => 'Huésped actualizado correctamente', 'huesped' => $huesped]);
+    } catch (ValidationException $e) {
+        \Log::error('Error de validación:', $e->errors());
+        return response()->json(['errors' => $e->errors(), 'input' => $request->all()], 422);
+    } catch (QueryException $e) {
+        \Log::error('Error de consulta:', ['message' => $e->getMessage()]);
+        return response()->json(['message' => 'Error al actualizar el huésped. Por favor, revisa los datos proporcionados.'], 500);
+    } catch (\Exception $e) {
+        \Log::error('Error desconocido:', ['message' => $e->getMessage()]);
+        return response()->json(['message' => 'Error al procesar la solicitud.'], 500);
+    }
+}
+
+    
+    public function destroy($id)
+    {
+        try {
+            $huesped = Huesped::find($id);
+            if ($huesped) {
+                $huesped->Estado = 0;
+                $huesped->save();
+                return response()->json(['message' => 'Huésped eliminado correctamente']);
+            } else {
+                return response()->json(['message' => 'Huésped no encontrado'], 404);
+            }
+        } catch (QueryException $e) {
+            return response()->json(['message' => 'Error al eliminar el huésped. Por favor, revisa los datos proporcionados.'], 500);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error al procesar la solicitud.'], 500);
+        }
+    }
+}

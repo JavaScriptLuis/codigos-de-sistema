@@ -1,0 +1,345 @@
+@extends('layouts.app')
+
+@section('title', 'Catálogo de Huéspedes')
+@section('page-title', 'Catálogo de Huéspedes')
+
+@section('content')
+<div class="w-full p-4">
+    <h2 class="text-center text-white text-5xl font-bold mb-4">CATÁLOGO DE HUÉSPEDES DEL RESIDENCIAL ZAFIRO</h2>
+
+    <div class="gradient-bg from-gray-800 to-black rounded-lg shadow-md p-4 border border-black mt-4">
+        <div class="flex justify-between items-center space-x-2 mb-4">
+            <button id="add-new-button" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700 border border-black flex items-center">
+                <i class="fas fa-plus mr-2"></i> Añadir nuevo registro
+            </button>
+            <button class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-700 border border-black flex items-center">
+                <i class="fas fa-file-excel mr-2"></i> Extraer Excel
+            </button>
+            <div class="relative">
+                <button class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-700 border border-black flex items-center">
+                    Activos
+                    <i class="fas fa-chevron-down ml-2"></i>
+                </button>
+                <div class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-20 hidden" id="status-dropdown">
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Activos</a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Inactivos</a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Todos</a>
+                </div>
+            </div>
+            <div class="relative flex items-center">
+                <input type="text" placeholder="Buscar" class="px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 pl-10">
+                <i class="fas fa-search absolute left-3 text-gray-500"></i>
+            </div>
+        </div>
+
+        <table class="min-w-full bg-gray-100 rounded-md shadow-md overflow-hidden">
+            <thead class="bg-gray-800 text-white">
+                <tr>
+                    <th class="py-2 px-4 border border-gray-200 text-center">N°</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Nombre</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Apellido</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Documento ID</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Teléfono</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Correo</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Estado</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">ID Residencial</th>
+                    <th class="py-2 px-4 border border-gray-200 text-center">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="huespedes-table-body">
+                @foreach ($huespedes as $index => $huesped)
+                <tr class="{{ $index % 2 == 0 ? 'bg-gray-200' : 'bg-gray-100' }}">
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $loop->iteration }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->Nombre }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->Apellido }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->DocumentoID }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->Telefono }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->Correo }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->Estado ? 'Activo' : 'Inactivo' }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center">{{ $huesped->ID_Residencial }}</td>
+                    <td class="py-2 px-4 border border-gray-200 text-center flex justify-center space-x-2">
+                        <button class="edit-button bg-yellow-500 text-white px-2 py-1 rounded-md hover:bg-yellow-700 border border-black" data-id="{{ $huesped->ID_Huesped }}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="delete-button bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-700 border border-black" data-id="{{ $huesped->ID_Huesped }}">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        <div class="flex justify-between items-center mt-4 text-white">
+            <div>
+                Mostrando registros del 1 al 10 de un total de 50 registros
+            </div>
+            <div class="flex space-x-2">
+                <button class="px-3 py-1 border rounded-md">Anterior</button>
+                <button class="px-3 py-1 border rounded-md bg-blue-500 text-white">1</button>
+                <button class="px-3 py-1 border rounded-md">2</button>
+                <button class="px-3 py-1 border rounded-md">3</button>
+                <button class="px-3 py-1 border rounded-md">4</button>
+                <button class="px-3 py-1 border rounded-md">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="add-new-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="gradient-bg from-gray-800 to-black rounded-lg shadow-lg p-6 w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-white">Añadir nuevo Huésped</h2>
+        <form id="add-new-form">
+            @csrf
+            <div class="mb-4 flex items-center">
+                <label for="Nombre" class="block text-gray-300 w-32"><i class="fas fa-user mr-2"></i>Nombre:</label>
+                <input type="text" id="Nombre" name="Nombre" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="Apellido" class="block text-gray-300 w-32"><i class="fas fa-user-tie mr-2"></i>Apellido:</label>
+                <input type="text" id="Apellido" name="Apellido" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="DocumentoID" class="block text-gray-300 w-32"><i class="fas fa-id-card mr-2"></i>Documento ID:</label>
+                <input type="number" id="DocumentoID" name="DocumentoID" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="Telefono" class="block text-gray-300 w-32"><i class="fas fa-phone mr-2"></i>Teléfono:</label>
+                <input type="number" id="Telefono" name="Telefono" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="Correo" class="block text-gray-300 w-32"><i class="fas fa-envelope mr-2"></i>Correo:</label>
+                <input type="email" id="Correo" name="Correo" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="ID_Residencial" class="block text-gray-300 w-32"><i class="fas fa-home mr-2"></i>ID Residencial:</label>
+                <input type="number" id="ID_Residencial" name="ID_Residencial" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="flex justify-end">
+                <button type="button" id="cancel-button" class="mr-4 px-4 py-2 border rounded-md text-white">Cancelar</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="edit-modal" class="fixed inset-0 z-50 flex items-center justify-center hidden">
+    <div class="gradient-bg from-gray-800 to-black rounded-lg shadow-lg p-6 w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-white">Editar Huésped</h2>
+        <form id="edit-form">
+            @csrf
+            @method('PUT')
+            <input type="hidden" id="edit-id" name="ID_Huesped">
+            <div class="mb-4 flex items-center">
+                <label for="edit-Nombre" class="block text-gray-300 w-32"><i class="fas fa-user mr-2"></i>Nombre:</label>
+                <input type="text" id="edit-Nombre" name="Nombre" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="edit-Apellido" class="block text-gray-300 w-32"><i class="fas fa-user-tie mr-2"></i>Apellido:</label>
+                <input type="text" id="edit-Apellido" name="Apellido" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="edit-DocumentoID" class="block text-gray-300 w-32"><i class="fas fa-id-card mr-2"></i>Documento ID:</label>
+                <input type="number" id="edit-DocumentoID" name="DocumentoID" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="edit-Telefono" class="block text-gray-300 w-32"><i class="fas fa-phone mr-2"></i>Teléfono:</label>
+                <input type="number" id="edit-Telefono" name="Telefono" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="edit-Correo" class="block text-gray-300 w-32"><i class="fas fa-envelope mr-2"></i>Correo:</label>
+                <input type="email" id="edit-Correo" name="Correo" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="edit-ID_Residencial" class="block text-gray-300 w-32"><i class="fas fa-home mr-2"></i>ID Residencial:</label>
+                <input type="number" id="edit-ID_Residencial" name="ID_Residencial" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="mb-4 flex items-center">
+                <label for="edit-Estado" class="block text-gray-300 w-32"><i class="fas fa-home mr-2"></i>Estado:</label>
+                <input type="number" id="edit-Estado" name="Estado" class="flex-grow px-4 py-2 border rounded-md bg-gray-900 text-white">
+            </div>
+            <div class="flex justify-end">
+                <button type="button" id="edit-cancel-button" class="mr-4 px-4 py-2 border rounded-md text-white">Cancelar</button>
+                <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-700">Actualizar</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const token = 'Bearer ' + window.apiToken;
+
+    // Fetch initial data
+    fetch('/api/huespedes', {
+        method: 'GET',
+        headers: {
+            'Authorization': token,
+            'Accept': 'application/json'
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        const tableBody = document.getElementById('huespedes-table-body');
+        tableBody.innerHTML = '';
+        data.forEach((huesped, index) => {
+            const row = document.createElement('tr');
+            row.className = index % 2 === 0 ? 'bg-gray-200' : 'bg-gray-100';
+            row.innerHTML = `
+                <td class="py-2 px-4 border border-gray-200 text-center">${index + 1}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.Nombre}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.Apellido}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.DocumentoID}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.Telefono}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.Correo}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.Estado ? 'Activo' : 'Inactivo'}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center">${huesped.ID_Residencial}</td>
+                <td class="py-2 px-4 border border-gray-200 text-center flex justify-center space-x-2">
+                    <button class="edit-button bg-yellow-500 text-white px-2 py-1 rounded-md hover:bg-yellow-700 border border-black" data-id="${huesped.ID_Huesped}">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="delete-button bg-red-500 text-white px-2 py-1 rounded-md hover:bg-red-700 border border-black" data-id="${huesped.ID_Huesped}">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+
+        // Añadir eventos para los botones de editar
+        document.querySelectorAll('.edit-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const huespedId = this.getAttribute('data-id');
+                fetch(`/api/huespedes/${huespedId}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': token,
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Llenar el formulario del modal con los datos del huésped
+                    document.getElementById('edit-id').value = data.ID_Huesped;
+                    document.getElementById('edit-Nombre').value = data.Nombre;
+                    document.getElementById('edit-Apellido').value = data.Apellido;
+                    document.getElementById('edit-DocumentoID').value = data.DocumentoID;
+                    document.getElementById('edit-Telefono').value = data.Telefono;
+                    document.getElementById('edit-Correo').value = data.Correo;
+                    document.getElementById('edit-ID_Residencial').value = data.ID_Residencial;
+                    document.getElementById('edit-Estado').value = data.Estado;
+
+                    // Mostrar el modal de edición
+                    document.getElementById('edit-modal').classList.remove('hidden');
+                })
+                .catch(error => {
+                    console.error('Error fetching huesped:', error);
+                });
+            });
+        });
+
+        // Añadir eventos para los botones de eliminar (si es necesario)
+        document.querySelectorAll('.delete-button').forEach(button => {
+            button.addEventListener('click', function() {
+                const huespedId = this.getAttribute('data-id');
+                // Agregar funcionalidad para eliminar si es necesario
+                console.log(`Delete huesped with ID ${huespedId}`);
+            });
+        });
+    })
+    .catch(error => {
+        console.error('Error fetching data:', error);
+    });
+
+    // Mostrar modal de añadir nuevo
+    document.getElementById('add-new-button').addEventListener('click', function() {
+        document.getElementById('add-new-modal').classList.remove('hidden');
+    });
+
+    // Ocultar modal de añadir nuevo
+    document.getElementById('cancel-button').addEventListener('click', function() {
+        document.getElementById('add-new-modal').classList.add('hidden');
+    });
+
+    // Ocultar modal de editar
+    document.getElementById('edit-cancel-button').addEventListener('click', function() {
+        document.getElementById('edit-modal').classList.add('hidden');
+    });
+
+    // Enviar formulario de añadir nuevo
+    document.getElementById('add-new-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const formData = new FormData(this);
+
+        fetch('/huesped', {
+            method: 'POST',
+            headers: {
+                'Authorization': token,
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            location.reload(); // Recargar la página para mostrar el nuevo registro
+        })
+        .catch(error => {
+            console.error('Error adding data:', error);
+        });
+    });
+
+    // Enviar formulario de editar
+    document.getElementById('edit-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        const huespedId = document.getElementById('edit-id').value;
+        const formData = new FormData(this);
+
+        fetch(`/huesped/${huespedId}`, {
+            method: 'PUT',
+            headers: {
+                'Authorization': token,
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('input[name="_token"]').value
+            },
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(errors => {
+                    throw new Error(JSON.stringify(errors));
+                });
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('edit-modal').classList.add('hidden'); // Ocultar el modal después de actualizar
+            location.reload(); // Recargar la página para mostrar el registro actualizado
+        })
+        .catch(error => {
+            console.error('Error updating data:', error);
+            // Mostrar errores de validación en el front-end
+            const errors = JSON.parse(error.message);
+            for (const [key, messages] of Object.entries(errors.errors)) {
+                alert(`Error en ${key}: ${messages.join(', ')}`);
+            }
+        });
+    });
+});
+
+document.querySelector('.relative button').addEventListener('click', function() {
+    document.getElementById('status-dropdown').classList.toggle('hidden');
+});
+</script>
+@endsection
+
+

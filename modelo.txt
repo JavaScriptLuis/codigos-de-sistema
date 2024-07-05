@@ -1,0 +1,88 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Validation\Rule;
+
+class Huesped extends Model
+{
+    use HasFactory;
+
+    protected $table = 'Huesped';
+    protected $primaryKey = 'ID_Huesped';
+
+    protected $fillable = [
+        'Nombre', 'Apellido', 'DocumentoID', 'Telefono', 'Correo', 'ID_Residencial', 'Estado'
+    ];
+    
+    protected $attributes = [
+        'Estado' => 1,  // Valor predeterminado para Estado
+    ];
+    
+    public $timestamps = true;
+
+    public static function rules($id = null)
+    {
+        return [
+            'Nombre' => 'required|max:50',
+            'Apellido' => 'required|max:50',
+            'DocumentoID' => [
+                'required',
+                'numeric',
+                Rule::unique('Huesped')->ignore($id, 'ID_Huesped')
+            ],
+            'Telefono' => [
+                'required',
+                'numeric',
+                Rule::unique('Huesped')->ignore($id, 'ID_Huesped')
+            ],
+            'Correo' => [
+                'required',
+                'email',
+                'max:50',
+                Rule::unique('Huesped')->ignore($id, 'ID_Huesped')
+            ],
+            'ID_Residencial' => 'required|numeric|exists:Sucursal_Residencial,ID_Residencial'
+        ];
+    }
+
+    public static function validationMessages()
+    {
+        return [
+            'Nombre.required' => 'El nombre es obligatorio.',
+            'Nombre.max' => 'El nombre no puede tener más de 50 caracteres.',
+            'Apellido.required' => 'El apellido es obligatorio.',
+            'Apellido.max' => 'El apellido no puede tener más de 50 caracteres.',
+            'DocumentoID.required' => 'El Documento de Identidad es obligatorio.',
+            'DocumentoID.numeric' => 'El Documento de Identidad debe ser numérico.',
+            'DocumentoID.unique' => 'El Documento de Identidad ya está registrado.',
+            'Telefono.required' => 'El teléfono es obligatorio.',
+            'Telefono.numeric' => 'El teléfono debe ser numérico.',
+            'Telefono.unique' => 'El teléfono ya está registrado.',
+            'Correo.required' => 'El correo electrónico es obligatorio.',
+            'Correo.email' => 'El correo electrónico debe ser una dirección de correo válida.',
+            'Correo.max' => 'El correo electrónico no puede tener más de 50 caracteres.',
+            'Correo.unique' => 'El correo electrónico ya está registrado.',
+            'ID_Residencial.required' => 'El ID residencial es obligatorio.',
+            'ID_Residencial.numeric' => 'El ID residencial debe ser numérico.',
+            'ID_Residencial.exists' => 'El ID residencial debe existir en la tabla Sucursal_Residencial.'
+        ];
+    }
+
+    public function reservas()
+    {
+        return $this->hasMany(Reserva::class, 'ID_Huesped', 'ID_Huesped');
+    }
+
+    public function movilidad()
+    {
+        return $this->hasOne(Movilidad::class, 'ID_Huesped', 'ID_Huesped');
+    }
+
+    public function registros()
+    {
+        return $this->hasMany(Registro::class, 'ID_Huesped', 'ID_Huesped');
+    }
+}
